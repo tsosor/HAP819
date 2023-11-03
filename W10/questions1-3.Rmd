@@ -1,0 +1,50 @@
+---
+title: "Multilevel Regression"
+output: pdf_document
+date: "2023-11-01"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r upload, warning=FALSE, message=FALSE}
+library(tidyverse)
+
+trauma = read_csv('../../Data/TraumaData.csv', show_col_types = FALSE)
+
+```
+
+```{r}
+trauma = trauma %>% 
+  mutate(oddsRatios = ProbSurvival/ (1-ProbSurvival)) %>% 
+  select(-ProbSurvival)
+
+#one-hot coding
+binarized_data = model.matrix(~Hosp -1, data = trauma) # exclude intercept using -1 or first column
+```
+
+
+```{r}
+trauma = cbind(trauma, binarized_data) %>% 
+  select(-Hosp)
+
+all_columns = names(trauma)
+
+predictors = setdiff(all_columns, "OddsRatios")
+
+formula_str = paste('OddsRatios ~ 0 +', paste(predictors, collapse = ' + '))
+
+formula_obj = as.formula(formula_str)
+
+lm(OddsRatios~., data=trauma)
+```
+
+
+```{r q3, warning=FALSE, message=FALSE}
+lung = read_csv('../../Data/lungCancer.csv', show_col_types = FALSE)
+  
+model.matrix(~`Medical Center`- 1, data=lung)
+```
