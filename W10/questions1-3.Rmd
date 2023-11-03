@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r upload, warning=FALSE, message=FALSE}
 library(tidyverse)
-
+# Make sure to change column name 65 and more to 'SixtyFiveMore' 
 trauma = read_csv('../../Data/TraumaData.csv', show_col_types = FALSE)
 
 ```
@@ -33,14 +33,48 @@ trauma = cbind(trauma, binarized_data) %>%
 
 all_columns = names(trauma)
 
-predictors = setdiff(all_columns, "OddsRatios")
+predictors = setdiff(all_columns, "oddsRatios")
 
-formula_str = paste('OddsRatios ~ 0 +', paste(predictors, collapse = ' + '))
+formula_str = paste('oddsRatios ~ 0 +', paste(predictors, collapse = ' + '))
 
 formula_obj = as.formula(formula_str)
 
-lm(OddsRatios~., data=trauma)
+# run regression
+micro_model = lm(formula_obj, data=trauma)
+
+summary(micro_model)
 ```
+- Part b: Create hospital data  
+
+```{r hospData, comment=NA }
+
+# create hospital data
+hosp_data = data.frame(
+  hosp = c('HospA','HospB','HospC','HospD','HospE'),
+  tertiaryCenter = c(1,1,0,0,0),
+  hasBurnedUnit = c(0,1,0,0,0))
+
+# extract hospital effects from the micro model
+hosp_effects = coef(micro_model)[grep('^Hosp', names(coef(micro_model)))]
+
+# convert effects to data frame for easier to merge
+hosp_effect_df = data.frame(
+  hosp = names(hosp_effects),
+  effect = as.numeric(hosp_effects))
+
+# merge effect coef back to hospital data features
+merged = hosp_data %>% 
+  left_join(hosp_effect_df, by='hosp')
+
+# regress the hospital effects on hospital features
+macro_model = lm(effect ~ tertiaryCenter + hasBurnedUnit, data=merged)
+summary(macro_model)
+
+```
+
+<!--DELETE: 
+Hospital intercepts for the hospitals represent the baseline odds of survival at each hopital, after adjusting 
+for the patient level variables-->
 
 
 ```{r q3, warning=FALSE, message=FALSE}
