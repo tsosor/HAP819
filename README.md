@@ -4,4 +4,4 @@
 
 
 ## Github
-- Jua Gua: https://www.jiaguo1000.com/lab1/
+- Jia Guo: [visit](https://www.jiaguo1000.com/lab1/)
